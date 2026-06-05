@@ -259,7 +259,21 @@
     <h1>Catastro de Sobregeneradores</h1>
     <p>Registro y análisis en terreno</p>
   </div>
-  <div id="live-clock">--:--:--</div>
+   <div id="live-clock">--:--:--</div>
+
+  <div id="userInfo"
+       style="display:none;align-items:center;gap:10px;margin-left:auto;">
+
+    <span id="userRoleBadge"></span>
+
+    <span id="userNameDisplay"
+          style="font-weight:600;"></span>
+
+    <button onclick="doLogout()">
+      Cerrar sesión
+    </button>
+
+  </div>
 </header>
 
 <div class="tabs">
@@ -604,7 +618,49 @@ function doLogin() {
   currentUser = user;
   localStorage.setItem('sg_session', JSON.stringify({ username: user.username, ts: Date.now() }));
   document.getElementById('authScreen').style.display = 'none';
-  onLoginSuccess();
+  function onLoginSuccess() {
+
+  const info = document.getElementById('userInfo');
+  const badge = document.getElementById('userRoleBadge');
+  const userName = document.getElementById('userNameDisplay');
+
+  const rolLabels = {
+    admin: 'Administrador',
+    supervisor: 'Supervisor',
+    inspector: 'Inspector'
+  };
+
+  const rolClasses = {
+    admin: 'role-admin',
+    supervisor: 'role-supervisor',
+    inspector: 'role-inspector'
+  };
+
+  if (badge) {
+    badge.innerHTML =
+      `<span class="auth-role-badge ${rolClasses[currentUser.rol]}">
+        ${rolLabels[currentUser.rol]}
+      </span>`;
+  }
+
+  if (userName) {
+    userName.textContent = currentUser.nombre;
+  }
+
+  if (info) {
+    info.style.display = 'flex';
+  }
+
+  if (
+    currentUser.rol === 'admin' ||
+    currentUser.rol === 'supervisor'
+  ) {
+    document.getElementById('tabUsuariosBtn').style.display = 'block';
+  }
+
+  if (currentUser.rol === 'inspector') {
+    document.getElementById('tabUsuariosBtn').style.display = 'none';
+  }
 }
 
 function doLogout() {
@@ -632,35 +688,6 @@ function tryRestoreSession() {
     onLoginSuccess();
     return true;
   } catch { return false; }
-}
-
-function onLoginSuccess() {
-  // Show user info in header
-  const info = document.getElementById('userInfo');
-  const rolLabels = { admin:'Administrador', supervisor:'Supervisor', inspector:'Inspector' };
-  const rolClasses = { admin:'role-admin', supervisor:'role-supervisor', inspector:'role-inspector' };
-  document.getElementById('userRoleBadge').innerHTML = `<span class="auth-role-badge ${rolClasses[currentUser.rol]}">${rolLabels[currentUser.rol]}</span>`;
-  document.getElementById('userNameDisplay').textContent = currentUser.nombre;
-  info.style.display = 'flex';
-
-  // Show usuarios tab for admin and supervisor
-  if (currentUser.rol === 'admin' || currentUser.rol === 'supervisor') {
-    document.getElementById('tabUsuariosBtn').style.display = 'block';
-  }
-
-  // Supervisor can only add inspectors (not admins)
-  if (currentUser.rol === 'supervisor') {
-    const rolSelect = document.getElementById('nuRol');
-    // Remove admin option
-    for (let i = rolSelect.options.length - 1; i >= 0; i--) {
-      if (rolSelect.options[i].value === 'admin') rolSelect.remove(i);
-    }
-  }
-
-  // Inspector: hide export and some tabs
-  if (currentUser.rol === 'inspector') {
-    document.getElementById('tabUsuariosBtn').style.display = 'none';
-  }
 }
 
 // ── User management ──

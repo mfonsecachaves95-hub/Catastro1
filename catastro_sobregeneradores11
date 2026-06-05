@@ -687,7 +687,9 @@ function tryRestoreSession() {
     document.getElementById('authScreen').style.display = 'none';
     onLoginSuccess();
     return true;
-  } catch { return false; }
+  } catch { 
+    return false;
+}
 }
 
 // ── User management ──

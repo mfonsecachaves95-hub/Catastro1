@@ -607,7 +607,9 @@ function doLogin() {
   errEl.style.display = 'none';
 
   const users = getUsuarios();
-  const user = users.find(u => u.username.toLowerCase() === username && u.password === password);
+  const user = users.find(
+    u => u.username.toLowerCase() === username && u.password === password
+  );
 
   if (!user) {
     errEl.style.display = 'block';
@@ -616,9 +618,20 @@ function doLogin() {
   }
 
   currentUser = user;
-  localStorage.setItem('sg_session', JSON.stringify({ username: user.username, ts: Date.now() }));
+
+  localStorage.setItem(
+    'sg_session',
+    JSON.stringify({
+      username: user.username,
+      ts: Date.now()
+    })
+  );
+
   document.getElementById('authScreen').style.display = 'none';
-  function onLoginSuccess() {
+
+  onLoginSuccess();
+}
+function onLoginSuccess() {
 
   const info = document.getElementById('userInfo');
   const badge = document.getElementById('userRoleBadge');

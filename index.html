@@ -943,7 +943,7 @@ function handlePhoto(input) {
 
     const canvas = document.createElement('canvas');
 
-    const maxWidth = 800;
+    const maxWidth = 400;
 
     let width = img.width;
     let height = img.height;
@@ -968,7 +968,7 @@ function handlePhoto(input) {
 
     fotoBase64 = canvas.toDataURL(
       'image/jpeg',
-      0.6
+      0.3
     );
 
     document.getElementById('photoPreview').src = fotoBase64;

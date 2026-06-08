@@ -805,6 +805,25 @@ let currentLat = null, currentLon = null;
 let map = null;
 let zoneActiva = 'todas';
 
+function cargarStorage() {
+
+  try {
+
+    registros = JSON.parse(
+      localStorage.getItem('catastro_v2')
+    ) || [];
+
+  } catch(e) {
+
+    console.error(e);
+
+    registros = [];
+  }
+
+  renderResultados();
+
+}
+  
 // ── Clock ──
 function updateClock() {
   const now = new Date();

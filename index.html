@@ -335,11 +335,31 @@
       </div>
       <div class="field">
         <label>Tipo de generador</label>
+        
         <select id="tipo" onchange="onTipoChange()">
-          <option value="">Seleccionar...</option>
-          <option value="domicilio">Domicilio</option>
-          <option value="comercio">Comercio</option>
-        </select>
+  <option value="">Seleccionar...</option>
+
+  <option value="domicilio">
+    Domiciliario
+  </option>
+
+  <option value="pmk">
+    Profesional / Microempresa Familiar / Kiosco
+  </option>
+
+  <option value="industrial">
+    Comercial Industrial
+  </option>
+
+  <option value="alcoholes">
+    Patente de Alcoholes
+  </option>
+
+  <option value="desconocido">
+    Desconocido
+  </option>
+
+</select>
       </div>
     </div>
   </div>
@@ -353,10 +373,9 @@
       </div>
       <div class="field">
         <label>Unidad</label>
-        <select id="unidad" onchange="onCantidadChange()">
-          <option value="bolsas">Bolsas (60L)</option>
-          <option value="tambores">Tambores (60L)</option>
-        </select>
+    <select id="unidad" onchange="onCantidadChange()">
+      <option value="bolsas">Bolsas de 60 Lts</option>
+    </select>
       </div>
     </div>
     <div id="limiteInfo" class="limite-info" style="display:none;"></div>
@@ -1483,23 +1502,92 @@ function onCantidadChange() {
   const info = document.getElementById('limiteInfo');
   if (!tipo) { info.style.display = 'none'; return; }
   let limite, txt;
-  if (tipo === 'domicilio') {
-    limite = 3; txt = 'Domicilio: máximo 3 bolsas de 60L semanales.';
-  } else {
-    limite = 12; txt = 'Comercio: mínimo 12 tambores de 60L mensuales.';
-  }
-  const sobre = esSobregenerador(tipo, cantidad, unidad);
+  switch (tipo) {
+
+  case 'domicilio':
+    limite = 3;
+    txt = 'Domiciliario: máximo 3 bolsas de 60L semanales.';
+    break;
+
+  case 'pmk':
+    limite = 2;
+    txt = 'Profesional / Microempresa Familiar / Kiosco: máximo 2 bolsas de 60L semanales.';
+    break;
+
+  case 'industrial':
+    limite = 3;
+    txt = 'Comercial Industrial: máximo 3 bolsas de 60L semanales.';
+    break;
+
+  case 'alcoholes':
+    limite = 4;
+    txt = 'Patente de Alcoholes: máximo 4 bolsas de 60L semanales.';
+    break;
+
+  case 'desconocido':
+    limite = 3;
+    txt = 'Desconocido: máximo 3 bolsas de 60L por día.';
+    break;
+
+  default:
+    limite = 3;
+    txt = '';
+}
+  const sobre = esSobregenerador(tipo, cantidad);
   info.style.display = 'block';
   info.style.background = sobre ? '#fde8e8' : '#d8f0e4';
   info.style.color = sobre ? '#9b2226' : '#2d6a4f';
-  info.textContent = txt + (sobre ? ` ⚠ Esta cantidad supera el límite (${cantidad} ${unidad}).` : '');
+  info.textContent = txt + (sobre ? ` ⚠ Esta cantidad supera el límite (${cantidad} bolsas).` : '');
 }
 
-function esSobregenerador(tipo, cantidad, unidad) {
+function esSobregenerador(tipo, cantidad, direccion = '', semana = '') {
+
   if (!tipo || !cantidad) return false;
-  if (tipo === 'domicilio' && unidad === 'bolsas' && cantidad > 3) return true;
-  if (tipo === 'comercio' && unidad === 'tambores' && cantidad > 12) return true;
-  return false;
+
+  let limite = 0;
+
+  switch (tipo) {
+
+    case 'domicilio':
+      limite = 3;
+      break;
+
+    case 'pmk':
+      limite = 2;
+      break;
+
+    case 'industrial':
+      limite = 3;
+      break;
+
+    case 'alcoholes':
+      limite = 4;
+      break;
+
+    case 'desconocido':
+      limite = 3;
+      break;
+
+    default:
+      limite = 3;
+  }
+
+  // Si el registro individual supera el límite
+  if (cantidad > limite) return true;
+
+  // Si aún no tenemos dirección o semana, termina aquí
+  if (!direccion || !semana) return false;
+
+  // Suma semanal de la misma dirección
+  const totalSemana = registros
+    .filter(r =>
+      r.direccion &&
+      r.direccion.trim().toLowerCase() === direccion.trim().toLowerCase() &&
+      r.semana === semana
+    )
+    .reduce((suma, r) => suma + Number(r.cantidad || 0), 0);
+
+  return (totalSemana + cantidad) > limite;
 }
 
 // ── Foto ──
@@ -1589,14 +1677,19 @@ async function guardarRegistro() {
     direccion, zona, diasRetiro, tipo, cantidad, unidad, obs,
     lat: currentLat, lon: currentLon,
     foto: fotoBase64,
-    sobre: esSobregenerador(tipo, cantidad, unidad),
-    comercio: comercioSeleccionado ? {
-      nombre: comercioSeleccionado.nombre,
-      rut: comercioSeleccionado.rut,
-      camion: comercioSeleccionado.camion,
-      conductor: comercioSeleccionado.conductor
-    } : null
-  };
+    sobre: esSobregenerador(
+  tipo,
+  cantidad,
+  direccion,
+  getWeekStr(now)
+),
+comercio: comercioSeleccionado ? {
+  nombre: comercioSeleccionado.nombre,
+  rut: comercioSeleccionado.rut,
+  camion: comercioSeleccionado.camion,
+  conductor: comercioSeleccionado.conductor
+} : null
+};
 
   // Guardar en Supabase
   const ok = await guardarRegistroSupabase(r);

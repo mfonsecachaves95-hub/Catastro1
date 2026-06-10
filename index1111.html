@@ -1739,9 +1739,16 @@ async function guardarRegistroSupabase(r) {
   };
   const { error } = await _supabase.from('registros').insert(fila);
   if (error) {
-    console.error('Error guardando en Supabase:', error);
-    alert('No se pudo guardar el registro en la base de datos. Intenta de nuevo.');
-    return false;
+  console.error('Error guardando en Supabase:', error);
+
+  alert(
+    'Código: ' + (error.code || '') +
+    '\nMensaje: ' + (error.message || '') +
+    '\nDetalle: ' + (error.details || '')
+  );
+
+  return false;
+}
   }
   return true;
 }

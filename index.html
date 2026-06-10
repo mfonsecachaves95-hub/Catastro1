@@ -1667,6 +1667,8 @@ async function guardarRegistro() {
 
   const [zona, diasRetiro] = zonaRaw.split('|');
   const now = new Date();
+  
+  const tipoBD = (tipo === 'domicilio') ? 'domicilio' : 'comercio';
 
   const r = {
     id: Date.now(),
@@ -1674,7 +1676,13 @@ async function guardarRegistro() {
     hora: now.toLocaleTimeString('es-CL', { hour:'2-digit', minute:'2-digit' }),
     semana: getWeekStr(now),
     fechaISO: now.toISOString(),
-    direccion, zona, diasRetiro, tipo, cantidad, unidad, obs,
+    direccion,
+    zona,
+    diasRetiro,
+    tipo: tipoBD,
+    cantidad,
+    unidad,
+    obs,
     lat: currentLat, lon: currentLon,
     foto: fotoBase64,
     sobre: false,

@@ -1738,7 +1738,7 @@ async function guardarRegistroSupabase(r) {
     comercio_conductor: r.comercio?.conductor || null,
   };
   const { error } = await _supabase.from('registros').insert(fila);
-  if (error) {
+ if (error) {
   console.error('Error guardando en Supabase:', error);
 
   alert(
@@ -1749,8 +1749,8 @@ async function guardarRegistroSupabase(r) {
 
   return false;
 }
-  }
-  return true;
+
+return true;
 }
 
 async function eliminarRegistroSupabase(id) {

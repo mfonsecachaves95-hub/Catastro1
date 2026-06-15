@@ -412,7 +412,7 @@
     <div class="zone-filter" id="zoneFilter">
       <button class="zone-btn active" onclick="filtrarZona('todas', this)">Todas</button>
     </div>
-    <div class="export-btns" id="exportWrap">
+   <div class="export-btns" id="exportWrap" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
       <button class="btn-export" onclick="toggleExportMenu(event)">⬇ Exportar ▾</button>
       <div class="export-menu" id="exportMenu">
         <div class="export-menu-title">Todo el registro</div>
@@ -431,6 +431,17 @@
         <div id="semanaItems"></div>
       </div>
     </div>
+    <div id="adminBtns" style="display:none;gap:6px;flex-wrap:wrap;">
+      <button class="btn-export" id="btnModoEliminar" onclick="toggleModoEliminar()" style="border-color:#9b2226;color:#9b2226;">🗑 Eliminar registros</button>
+      <button class="btn-export" id="btnBorrarZona" onclick="borrarZona()" style="border-color:#9b2226;color:#9b2226;">🗑 Borrar zona activa</button>
+      <button class="btn-export" onclick="borrarTodo()" style="border-color:#9b2226;color:#9b2226;">🗑 Borrar todo</button>
+    </div>
+  </div>
+
+  <div id="seleccionBtns" style="display:none;margin-bottom:12px;gap:8px;align-items:center;flex-wrap:wrap;">
+    <span style="font-size:13px;color:var(--text2);">Selecciona los registros a eliminar:</span>
+    <button onclick="eliminarSeleccionados()" style="padding:6px 14px;background:var(--danger);color:white;border:none;border-radius:var(--radius);font-size:13px;cursor:pointer;font-weight:600;">🗑 Eliminar seleccionados</button>
+    <button onclick="cancelarModoEliminar()" style="padding:6px 14px;background:none;border:1px solid var(--border);border-radius:var(--radius);font-size:13px;cursor:pointer;color:var(--text2);">✕ Cancelar</button>
   </div>
 
   <div id="listaRegistros">
@@ -1174,11 +1185,10 @@ function onLoginSuccess() {
   ) {
     document.getElementById('tabUsuariosBtn').style.display = 'block';
   }
-
-  if (currentUser.rol === 'inspector') {
-    document.getElementById('tabUsuariosBtn').style.display = 'none';
+  if (currentUser.rol === 'admin') {
+    const adminBtns = document.getElementById('adminBtns');
+    if (adminBtns) adminBtns.style.display = 'flex';
   }
-}
 
 function doLogout() {
   currentUser = null;
@@ -1816,7 +1826,13 @@ function renderResultados() {
         <span>📆 ${r.semana}</span>
         ${r.obs ? `<span>📝 ${r.obs}</span>` : ''}
         ${r.comercio ? `<span style='color:var(--info);font-size:11px;'>🏢 ${r.comercio.nombre} · ${r.comercio.rut}</span>` : ''}
-        <button class="delete-btn" onclick="eliminarRegistro(${r.id})">✕ Eliminar</button>
+        ${modoEliminar
+  ? `<label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;color:var(--danger);font-weight:600;">
+      <input type="checkbox" onchange="toggleSeleccion(${r.id})" ${seleccionados.has(r.id)?'checked':''} style="width:16px;height:16px;cursor:pointer;accent-color:var(--danger);" />
+      Seleccionar
+    </label>`
+  : `<button class="delete-btn" onclick="eliminarRegistro(${r.id})">✕ Eliminar</button>`
+}
       </div>
       ${r.foto ? `<img src="${r.foto}" class="reg-img" alt="Evidencia" />` : ''}
     </div>
@@ -1830,10 +1846,68 @@ function filtrarZona(zona, btn) {
   renderResultados();
 }
 
+let modoEliminar = false;
+let seleccionados = new Set();
+
+function toggleModoEliminar() {
+  modoEliminar = true;
+  seleccionados.clear();
+  document.getElementById('seleccionBtns').style.display = 'flex';
+  document.getElementById('btnModoEliminar').style.display = 'none';
+  document.getElementById('btnBorrarZona').style.display = 'none';
+  renderResultados();
+}
+
+function cancelarModoEliminar() {
+  modoEliminar = false;
+  seleccionados.clear();
+  document.getElementById('seleccionBtns').style.display = 'none';
+  document.getElementById('btnModoEliminar').style.display = '';
+  document.getElementById('btnBorrarZona').style.display = '';
+  renderResultados();
+}
+
+function toggleSeleccion(id) {
+  if (seleccionados.has(id)) seleccionados.delete(id);
+  else seleccionados.add(id);
+}
+
+async function eliminarSeleccionados() {
+  if (!seleccionados.size) { alert('No seleccionaste ningún registro.'); return; }
+  if (!confirm(`¿Eliminar ${seleccionados.size} registro(s) seleccionado(s)?`)) return;
+  for (const id of seleccionados) {
+    await eliminarRegistroSupabase(id);
+    registros = registros.filter(r => r.id !== id);
+  }
+  cancelarModoEliminar();
+  renderResultados();
+}
+
 async function eliminarRegistro(id) {
   if (!confirm('¿Eliminar este registro?')) return;
   await eliminarRegistroSupabase(id);
   registros = registros.filter(r => r.id !== id);
+  renderResultados();
+}
+
+async function borrarZona() {
+  const zonaLabel = zoneActiva === 'todas' ? 'todas las zonas' : zoneActiva;
+  if (!confirm(`¿Eliminar TODOS los registros de: ${zonaLabel}?`)) return;
+  const aEliminar = zoneActiva === 'todas' ? registros : registros.filter(r => r.zona === zoneActiva);
+  for (const r of aEliminar) {
+    await eliminarRegistroSupabase(r.id);
+  }
+  registros = zoneActiva === 'todas' ? [] : registros.filter(r => r.zona !== zoneActiva);
+  renderResultados();
+}
+
+async function borrarTodo() {
+  if (!confirm('⚠ ¿Eliminar TODOS los registros? Esta acción no se puede deshacer.')) return;
+  if (!confirm('¿Estás seguro? Se borrarán todos los datos permanentemente.')) return;
+  for (const r of registros) {
+    await eliminarRegistroSupabase(r.id);
+  }
+  registros = [];
   renderResultados();
 }
 

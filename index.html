@@ -1685,7 +1685,7 @@ async function guardarRegistro() {
     obs,
     lat: currentLat, lon: currentLon,
     foto: fotoBase64,
-    sobre: false,
+    sobre: esSobregenerador(tipo, cantidad, direccion, getWeekStr(now)),
 comercio: comercioSeleccionado ? {
   nombre: comercioSeleccionado.nombre,
   rut: comercioSeleccionado.rut,

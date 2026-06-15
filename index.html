@@ -1679,30 +1679,38 @@ async function guardarRegistro() {
   const [zona, diasRetiro] = zonaRaw.split('|');
   const now = new Date();
   
-  const tipoBD = (tipo === 'domicilio') ? 'domicilio' : 'comercio';
-
   const r = {
-    id: Date.now(),
-    fecha: now.toLocaleDateString('es-CL'),
-    hora: now.toLocaleTimeString('es-CL', { hour:'2-digit', minute:'2-digit' }),
-    semana: getWeekStr(now),
-    fechaISO: now.toISOString(),
-    direccion,
-    zona,
-    diasRetiro,
-    tipo: tipoBD,
+  id: Date.now(),
+  fecha: now.toLocaleDateString('es-CL'),
+  hora: now.toLocaleTimeString('es-CL', { hour:'2-digit', minute:'2-digit' }),
+  semana: getWeekStr(now),
+  fecha_iso: now.toISOString(),
+
+  direccion,
+  zona,
+  dias_retiro: diasRetiro,
+
+  tipo,
+  cantidad,
+  unidad,
+  obs,
+
+  lat: currentLat,
+  lon: currentLon,
+
+  foto: fotoBase64,
+
+  sobre: esSobregenerador(
+    tipo,
     cantidad,
-    unidad,
-    obs,
-    lat: currentLat, lon: currentLon,
-    foto: fotoBase64,
-    sobre: esSobregenerador(tipo, cantidad, direccion, getWeekStr(now)),
-comercio: comercioSeleccionado ? {
-  nombre: comercioSeleccionado.nombre,
-  rut: comercioSeleccionado.rut,
-  camion: comercioSeleccionado.camion,
-  conductor: comercioSeleccionado.conductor
-} : null
+    direccion,
+    getWeekStr(now)
+  ),
+
+  comercio_nombre: comercioSeleccionado?.nombre || null,
+  comercio_rut: comercioSeleccionado?.rut || null,
+  comercio_camion: comercioSeleccionado?.camion || null,
+  comercio_conductor: comercioSeleccionado?.conductor || null
 };
 
   // Guardar en Supabase
@@ -1735,27 +1743,32 @@ comercio: comercioSeleccionado ? {
 // ── Storage (Supabase) ──
 async function guardarRegistroSupabase(r) {
   const fila = {
-    id:                 r.id,
-    fecha:              r.fecha,
-    hora:               r.hora,
-    semana:             r.semana,
-    fecha_iso:          r.fechaISO,
-    direccion:          r.direccion,
-    zona:               r.zona,
-    dias_retiro:        r.diasRetiro || null,
-    tipo:               r.tipo,
-    cantidad:           r.cantidad,
-    unidad:             r.unidad,
-    obs:                r.obs || null,
-    lat:                r.lat ? parseFloat(r.lat) : null,
-    lon:                r.lon ? parseFloat(r.lon) : null,
-    foto:               r.foto || null,
-    sobre:              r.sobre,
-    comercio_nombre:    r.comercio?.nombre    || null,
-    comercio_rut:       r.comercio?.rut       || null,
-    comercio_camion:    r.comercio?.camion    || null,
-    comercio_conductor: r.comercio?.conductor || null,
-  };
+  id: r.id,
+  fecha: r.fecha,
+  hora: r.hora,
+  semana: r.semana,
+  fecha_iso: r.fecha_iso,
+
+  direccion: r.direccion,
+  zona: r.zona,
+  dias_retiro: r.dias_retiro || null,
+
+  tipo: r.tipo,
+  cantidad: r.cantidad,
+  unidad: r.unidad,
+  obs: r.obs || null,
+
+  lat: r.lat ? parseFloat(r.lat) : null,
+  lon: r.lon ? parseFloat(r.lon) : null,
+
+  foto: r.foto || null,
+  sobre: r.sobre,
+
+  comercio_nombre: r.comercio_nombre || null,
+  comercio_rut: r.comercio_rut || null,
+  comercio_camion: r.comercio_camion || null,
+  comercio_conductor: r.comercio_conductor || null
+};
   const { error } = await _supabase.from('registros').insert(fila);
  if (error) {
   console.error('Error guardando en Supabase:', error);
@@ -1817,7 +1830,7 @@ function renderResultados() {
           <div class="reg-meta">${r.fecha} · ${r.hora} · ${r.zona} · ${r.diasRetiro||''}</div>
         </div>
         <div class="badges">
-          <span class="badge badge-${r.tipo==='comercio'?'com':'dom'}">${r.tipo}</span>
+          <span class="badge badge-${r.tipo==='domicilio'?'dom':'com'}">${r.tipo}</span>
           <span class="badge badge-${r.sobre?'sobre':'ok'}">${r.sobre?'⚠ Sobregenerador':'✓ Normal'}</span>
         </div>
       </div>

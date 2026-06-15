@@ -1714,6 +1714,9 @@ async function guardarRegistro() {
 };
 
   // Guardar en Supabase
+  console.log("TIPO:", r.tipo);
+console.log("SOBRE:", r.sobre);
+console.log("REGISTRO:", r);
   const ok = await guardarRegistroSupabase(r);
   if (!ok) return;
 

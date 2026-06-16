@@ -2527,6 +2527,8 @@ function seleccionarComercio(idx) {
   const c = list._results[idx];
   if (!c) return;
   comercioSeleccionado = c;
+  alert('COMERCIO SELECCIONADO');
+  console.log('COMERCIO SELECCIONADO:', c); 
   document.getElementById('direccion').value = c.direccion;
   list.style.display = 'none';
 

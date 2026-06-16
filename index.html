@@ -1961,9 +1961,49 @@ async function verEliminados() {
 
   const eliminados = await cargarEliminados();
 
-  console.log('ELIMINADOS:', eliminados);
+  const lista = document.getElementById('listaRegistros');
 
-  alert(`Hay ${eliminados.length} registro(s) en la papelera.`);
+  if (!eliminados.length) {
+    lista.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">🗑</div>
+        <p>No hay registros en la papelera.</p>
+      </div>
+    `;
+    return;
+  }
+
+  lista.innerHTML = eliminados.map(r => `
+    <div class="registro">
+
+      <div class="reg-top">
+        <div>
+          <div class="reg-addr">${r.direccion}</div>
+
+          <div class="reg-meta">
+            ${r.fecha} · ${r.hora} · ${r.zona}
+          </div>
+        </div>
+
+        <div class="badges">
+          <span class="badge badge-sobre">🗑 Eliminado</span>
+        </div>
+      </div>
+
+      <div class="reg-detail">
+
+        <span>
+          👤 ${r.eliminado_por || 'Admin'}
+        </span>
+
+        <span>
+          🕒 ${new Date(r.fecha_eliminacion).toLocaleString('es-CL')}
+        </span>
+
+      </div>
+
+    </div>
+  `).join('');
 }
 
 // ── Menú exportar ──

@@ -1363,6 +1363,29 @@ async function cargarStorage() {
   renderResultados();
 }
   
+async function cargarEliminados() {
+  try {
+
+    const { data, error } = await _supabase
+      .from('registros')
+      .select('*')
+      .eq('eliminado', true)
+      .order('fecha_eliminacion', { ascending: false });
+
+    if (error) throw error;
+
+    return data || [];
+
+  } catch (e) {
+    console.error('Error cargando eliminados:', e);
+    return [];
+  }
+}
+
+async function guardarRegistroSupabase(r) {
+   ...
+}
+  
 // ── Clock ──
 function updateClock() {
   const now = new Date();

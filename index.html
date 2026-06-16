@@ -1815,12 +1815,13 @@ async function eliminarRegistroSupabase(id) {
     .update({
       eliminado: true,
       fecha_eliminacion: new Date().toISOString(),
-      eliminado_por: usuarioActual?.nombre || 'Admin'
+      eliminado_por: 'Admin'
     })
     .eq('id', id);
 
   if (error) {
     console.error('Error enviando a papelera:', error);
+    alert('Error enviando a papelera: ' + error.message);
   }
 }
 

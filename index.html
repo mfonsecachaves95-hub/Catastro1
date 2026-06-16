@@ -1871,7 +1871,13 @@ function renderResultados() {
         ${r.lat ? `<span>📍 ${r.lat}, ${r.lon}</span>` : ''}
         <span>📆 ${r.semana}</span>
         ${r.obs ? `<span>📝 ${r.obs}</span>` : ''}
-        ${r.comercio ? `<span style='color:var(--info);font-size:11px;'>🏢 ${r.comercio.nombre} · ${r.comercio.rut}</span>` : ''}
+        ${r.comercio_nombre ? `
+<div style='color:var(--info);font-size:11px;'>
+🏢 ${r.comercio_nombre}<br>
+📄 ${r.comercio_rut || '-'}<br>
+🚛 ${r.comercio_camion || '-'}<br>
+👤 ${r.comercio_conductor || '-'}
+</div>` : ''}
         ${modoEliminar
   ? `<label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;color:var(--danger);font-weight:600;">
       <input type="checkbox" onchange="toggleSeleccion(${r.id})" ${seleccionados.has(r.id)?'checked':''} style="width:16px;height:16px;cursor:pointer;accent-color:var(--danger);" />

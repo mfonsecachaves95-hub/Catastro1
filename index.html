@@ -1793,6 +1793,14 @@ async function guardarRegistroSupabase(r) {
   comercio_camion: r.comercio_camion || null,
   comercio_conductor: r.comercio_conductor || null
 };
+  alert(
+  JSON.stringify({
+    comercio_nombre: fila.comercio_nombre,
+    comercio_rut: fila.comercio_rut,
+    comercio_camion: fila.comercio_camion,
+    comercio_conductor: fila.comercio_conductor
+  }, null, 2)
+);
   const { error } = await _supabase.from('registros').insert(fila);
  if (error) {
   console.error('Error guardando en Supabase:', error);

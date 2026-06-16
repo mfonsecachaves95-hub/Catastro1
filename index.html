@@ -432,10 +432,11 @@
       </div>
     </div>
     <div id="adminBtns" style="display:none;gap:6px;flex-wrap:wrap;">
-      <button class="btn-export" id="btnModoEliminar" onclick="toggleModoEliminar()" style="border-color:#9b2226;color:#9b2226;">🗑 Eliminar registros</button>
-      <button class="btn-export" id="btnBorrarZona" onclick="borrarZona()" style="border-color:#9b2226;color:#9b2226;">🗑 Borrar zona activa</button>
-      <button class="btn-export" onclick="borrarTodo()" style="border-color:#9b2226;color:#9b2226;">🗑 Borrar todo</button>
-    </div>
+  <button class="btn-export" id="btnModoEliminar" onclick="toggleModoEliminar()" style="border-color:#9b2226;color:#9b2226;">🗑 Eliminar registros</button>
+  <button class="btn-export" id="btnBorrarZona" onclick="borrarZona()" style="border-color:#9b2226;color:#9b2226;">🗑 Borrar zona activa</button>
+  <button class="btn-export" onclick="borrarTodo()" style="border-color:#9b2226;color:#9b2226;">🗑 Borrar todo</button>
+  <button class="btn-export" onclick="verEliminados()" style="border-color:#6c757d;color:#6c757d;">🗑 Ver eliminados</button>
+     </div>
   </div>
 
   <div id="seleccionBtns" style="display:none;margin-bottom:12px;gap:8px;align-items:center;flex-wrap:wrap;">
@@ -1954,6 +1955,15 @@ async function borrarTodo() {
   }
   registros = [];
   renderResultados();
+}
+
+async function verEliminados() {
+
+  const eliminados = await cargarEliminados();
+
+  console.log('ELIMINADOS:', eliminados);
+
+  alert(`Hay ${eliminados.length} registro(s) en la papelera.`);
 }
 
 // ── Menú exportar ──

@@ -1325,10 +1325,11 @@ let zoneActiva = 'todas';
 
 async function cargarStorage() {
   try {
-    const { data, error } = await _supabase
-      .from('registros')
-      .select('*')
-      .order('fecha_iso', { ascending: false });
+   const { data, error } = await _supabase
+  .from('registros')
+  .select('*')
+  .eq('eliminado', false)
+  .order('fecha_iso', { ascending: false });
     if (error) throw error;
     // Mapear columnas Supabase -> formato original del frontend
     registros = (data || []).map(r => ({
@@ -1786,12 +1787,19 @@ return true;
 }
 
 async function eliminarRegistroSupabase(id) {
-  const { error } = await _supabase.from('registros').delete().eq('id', id);
-  if (error) { console.error('Error eliminando:', error); }
-}
 
-function guardarStorage() {
-  // localStorage ya no se usa para registros
+  const { error } = await _supabase
+    .from('registros')
+    .update({
+      eliminado: true,
+      fecha_eliminacion: new Date().toISOString(),
+      eliminado_por: usuarioActual?.nombre || 'Admin'
+    })
+    .eq('id', id);
+
+  if (error) {
+    console.error('Error enviando a papelera:', error);
+  }
 }
 
 // ── Resultados ──

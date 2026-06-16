@@ -1702,7 +1702,12 @@ async function guardarRegistro() {
 
   const [zona, diasRetiro] = zonaRaw.split('|');
   const now = new Date();
-  
+  console.log('ANTES DE CREAR R');
+  console.log('comercioSeleccionado =', comercioSeleccionado);
+  console.log('nombre =', comercioSeleccionado?.nombre);
+  console.log('rut =', comercioSeleccionado?.rut);
+  console.log('camion =', comercioSeleccionado?.camion);
+  console.log('conductor =', comercioSeleccionado?.conductor);
   const r = {
   id: Date.now(),
   fecha: now.toLocaleDateString('es-CL'),
@@ -2381,7 +2386,7 @@ function buscarComercios(query) {
 }
 
 function onDireccionInput() {
-  comercioSeleccionado = null;
+
   document.getElementById('comercioCard').style.display = 'none';
   document.getElementById('zonaSugerida').style.display = 'none';
   

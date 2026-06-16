@@ -1736,7 +1736,7 @@ async function guardarRegistro() {
   comercio_camion: comercioSeleccionado?.camion || null,
   comercio_conductor: comercioSeleccionado?.conductor || null
 };
-
+console.log('REGISTRO A GUARDAR:', r);
   // Guardar en Supabase
   const ok = await guardarRegistroSupabase(r);
   if (!ok) return;

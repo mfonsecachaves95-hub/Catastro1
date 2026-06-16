@@ -1956,7 +1956,43 @@ async function borrarTodo() {
   registros = [];
   renderResultados();
 }
+async function restaurarRegistro(id) {
 
+  const { error } = await _supabase
+    .from('registros')
+    .update({
+      eliminado: false,
+      fecha_eliminacion: null,
+      eliminado_por: null
+    })
+    .eq('id', id);
+
+  if (error) {
+    console.error('Error restaurando:', error);
+    alert('Error restaurando registro');
+    return;
+  }
+
+  verEliminados();
+}
+
+async function eliminarDefinitivamente(id) {
+
+  if (!confirm('¿Eliminar definitivamente este registro?')) return;
+
+  const { error } = await _supabase
+    .from('registros')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    console.error('Error eliminando definitivamente:', error);
+    alert('Error eliminando definitivamente');
+    return;
+  }
+
+  verEliminados();
+}
 async function verEliminados() {
 
   const eliminados = await cargarEliminados();
@@ -1992,15 +2028,27 @@ async function verEliminados() {
 
       <div class="reg-detail">
 
-        <span>
-          👤 ${r.eliminado_por || 'Admin'}
-        </span>
+  <span>
+    👤 ${r.eliminado_por || 'Admin'}
+  </span>
 
-        <span>
-          🕒 ${new Date(r.fecha_eliminacion).toLocaleString('es-CL')}
-        </span>
+  <span>
+    🕒 ${new Date(r.fecha_eliminacion).toLocaleString('es-CL')}
+  </span>
 
-      </div>
+  <button
+    onclick="restaurarRegistro(${r.id})"
+    style="padding:4px 10px;border:none;border-radius:6px;cursor:pointer;">
+    ↩ Restaurar
+  </button>
+
+  <button
+    onclick="eliminarDefinitivamente(${r.id})"
+    style="padding:4px 10px;border:none;border-radius:6px;cursor:pointer;">
+    ❌ Definitivo
+  </button>
+
+</div>
 
     </div>
   `).join('');

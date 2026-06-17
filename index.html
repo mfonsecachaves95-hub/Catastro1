@@ -1110,15 +1110,18 @@ const COMERCIOS_PADRON = [{"nombre":"Jorge Figueroa Ulloa. - Hostal Casa Blanca"
 const ADMIN_DEFAULT = { nombre:'Administrador', username:'admin', password:'admin123', rol:'admin' };
 
 // usuarios gestionados en Supabase — estas funciones son shims para compatibilidad
-let _usuariosCache = [];
-function getUsuarios() { return _usuariosCache; }
-function saveUsuarios(u) { _usuariosCache = u; }
+
 async function initUsuarios() {
-  const { data } = await _supabase.from('usuarios').select('id,nombre,username,rol,activo');
-  _usuariosCache = (data || []).map(u => ({
-    id: u.id, nombre: u.nombre, username: u.username,
-    rol: u.rol, activo: u.activo, password: '***'
-  }));
+  const { data, error } = await _supabase
+    .from('usuarios')
+    .select('id,nombre,username,rol,activo');
+
+  if (error) {
+    console.error(error);
+    return;
+  }
+
+  renderUsuarios(data || []);
 }
 
 let currentUser = null;
@@ -1126,23 +1129,27 @@ let currentUser = null;
 async function doLogin() {
   const username = document.getElementById('loginUser').value.trim().toLowerCase();
   const password = document.getElementById('loginPass').value;
-  const errEl = document.getElementById('authError');
-  errEl.style.display = 'none';
 
-  const { data, error } = await _supabase.rpc('verificar_password', {
-    p_username: username,
-    p_password: password
-  });
+  const { data, error } = await _supabase
+    .from('usuarios')
+    .select('*')
+    .eq('username', username)
+    .eq('activo', true)
+    .single();
 
-  const user = data && data[0];
-  if (!user || error) {
-    errEl.style.display = 'block';
-    document.getElementById('loginPass').value = '';
+  if (error || !data) {
+    alert('Usuario no existe');
     return;
   }
 
-  currentUser = { ...user, password: '***' };
-  localStorage.setItem('sg_session', JSON.stringify({ username: user.username, ts: Date.now() }));
+  if (data.password_hash !== password) {
+    alert('Contraseña incorrecta');
+    return;
+  }
+
+  currentUser = data;
+  localStorage.setItem('sg_session', JSON.stringify({ username, ts: Date.now() }));
+
   document.getElementById('authScreen').style.display = 'none';
   onLoginSuccess();
   await cargarStorage();
@@ -1208,47 +1215,52 @@ async function tryRestoreSession() {
     const sess = JSON.parse(localStorage.getItem('sg_session') || 'null');
     if (!sess) return false;
     if (Date.now() - sess.ts > 12 * 3600 * 1000) { localStorage.removeItem('sg_session'); return false; }
-    const { data } = await _supabase
-      .from('usuarios')
-      .select('id,nombre,username,rol')
-      .eq('username', sess.username)
-      .eq('activo', true)
-      .single();
-    if (!data) return false;
-    currentUser = { ...data, password: '***' };
-    document.getElementById('authScreen').style.display = 'none';
-    onLoginSuccess();
-    return true;
-  } catch {
-    return false;
-  }
+    const { data, error } = await _supabase
+  .from('usuarios')
+  .select('id,nombre,username,rol')
+  .eq('username', sess.username)
+  .eq('activo', true)
+  .single();
+
+if (error || !data) {
+  console.warn('Sesión inválida o usuario no existe:', error);
+  localStorage.removeItem('sg_session');
+  return false;
 }
 
+currentUser = { ...data, password: '***' };
+
+document.getElementById('authScreen').style.display = 'none';
+onLoginSuccess();
+return true;
+
 // ── User management ──
-function agregarUsuario() {
+async function agregarUsuario() {
   const nombre = document.getElementById('nuNombre').value.trim();
   const username = document.getElementById('nuUser').value.trim().toLowerCase();
   const password = document.getElementById('nuPass').value;
   const rol = document.getElementById('nuRol').value;
-  const errEl = document.getElementById('addUserError');
-  errEl.style.display = 'none';
 
-  if (!nombre || !username || !password) { errEl.textContent = 'Completa todos los campos.'; errEl.style.display = 'block'; return; }
-  if (password.length < 6) { errEl.textContent = 'La contraseña debe tener al menos 6 caracteres.'; errEl.style.display = 'block'; return; }
+  if (!nombre || !username || !password) return;
 
-  // Supervisor cannot create admins
-  if (currentUser.rol === 'supervisor' && rol === 'admin') { errEl.textContent = 'No tienes permiso para crear administradores.'; errEl.style.display = 'block'; return; }
+  const { error } = await _supabase
+    .from('usuarios')
+    .insert([{
+      nombre,
+      username,
+      password_hash: password,
+      rol,
+      activo: true
+    }]);
 
-  const users = getUsuarios();
-  if (users.find(u => u.username === username)) { errEl.textContent = 'Ese nombre de usuario ya existe.'; errEl.style.display = 'block'; return; }
+  if (error) {
+    console.error(error);
+    alert(error.message);
+    return;
+  }
 
-  users.push({ nombre, username, password, rol });
-  saveUsuarios(users);
-
-  document.getElementById('nuNombre').value = '';
-  document.getElementById('nuUser').value = '';
-  document.getElementById('nuPass').value = '';
-  document.getElementById('nuRol').value = 'inspector';
+  alert('Usuario creado');
+  await initUsuarios();
   renderUsuarios();
 }
 
@@ -1298,24 +1310,35 @@ function cambiarPassword() {
   setTimeout(() => { okEl.style.display = 'none'; }, 3000);
 }
 
-function renderUsuarios() {
-  const users = getUsuarios();
+function renderUsuarios(users) {
   const lista = document.getElementById('listaUsuarios');
-  const rolLabels = { admin:'Administrador', supervisor:'Supervisor', inspector:'Inspector' };
-  const rolClasses = { admin:'role-admin', supervisor:'role-supervisor', inspector:'role-inspector' };
+
+  const rolLabels = {
+    admin:'Administrador',
+    supervisor:'Supervisor',
+    inspector:'Inspector'
+  };
+
+  const rolClasses = {
+    admin:'role-admin',
+    supervisor:'role-supervisor',
+    inspector:'role-inspector'
+  };
 
   lista.innerHTML = users.map(u => `
     <div class="user-card">
       <div class="user-avatar">${u.nombre.charAt(0).toUpperCase()}</div>
       <div class="user-info">
-        <div class="user-name">${u.nombre} <span class="auth-role-badge ${rolClasses[u.rol]}">${rolLabels[u.rol]}</span></div>
+        <div class="user-name">
+          ${u.nombre}
+          <span class="auth-role-badge ${rolClasses[u.rol]}">
+            ${rolLabels[u.rol]}
+          </span>
+        </div>
         <div class="user-username">@${u.username}</div>
       </div>
-      <div class="user-actions">
-        ${u.username !== currentUser.username && !(currentUser.rol === 'supervisor' && u.rol === 'admin')
-          ? `<button class="user-del-btn" onclick="eliminarUsuario('${u.username}')">Eliminar</button>` : ''}
-      </div>
-    </div>`).join('');
+    </div>
+  `).join('');
 }
 
 let registros = [];

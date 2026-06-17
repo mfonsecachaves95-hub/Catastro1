@@ -1792,7 +1792,7 @@ async function subirFotoStorage() {
   const nombreArchivo = `${Date.now()}.${extension}`;
 
   const { error } = await _supabase.storage
-    .from('evidencias')
+    .from('Evidencias')
     .upload(nombreArchivo, fotoFile);
 
   if (error) {
@@ -1802,7 +1802,7 @@ async function subirFotoStorage() {
   }
 
   const { data } = _supabase.storage
-    .from('evidencias')
+    .from('Evidencias')
     .getPublicUrl(nombreArchivo);
 
   return data.publicUrl;

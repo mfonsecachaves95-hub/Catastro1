@@ -2207,6 +2207,7 @@ function exportarKML(modo, semana) {
 
 // ── Exportar XLSX ──
 function exportarXLSX(modo, semana) {
+  alert('ENTRÉ A EXPORTAR XLSX');
   const datos = getFiltrados(modo, semana);
   if (!datos.length) { alert('No hay registros para exportar con este filtro.'); return; }
 

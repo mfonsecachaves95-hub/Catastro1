@@ -2141,6 +2141,9 @@ function getFiltrados(modo, semana) {
   if (modo === 'semana' && semana) return registros.filter(r => r.semana === semana);
   return registros;
 }
+  function getEliminados() {
+  return registros.filter(r => r.eliminado === true);
+}
 
 function nombreArchivo(modo, semana, ext) {
   if (modo === 'zona' && zoneActiva !== 'todas') return `catastro_${zoneActiva.replace(/\s+/g,'_')}.${ext}`;
@@ -2376,7 +2379,41 @@ for (let R = 1; R <= rangoReg.e.r; R++) {
   }
   wsZona['!autofilter'] = { ref: `A1:G1` };
   XLSX.utils.book_append_sheet(wb, wsZona, 'Resumen por zona');
+// ── Hoja 4: Eliminados ──
+const eliminados = registros.filter(r => r.eliminado === true);
 
+if (eliminados.length > 0) {
+
+  const colsElim = [
+    'ID','Fecha','Hora','Semana','Dirección','Zona',
+    'Tipo','Cantidad','Unidad','Observaciones','Fecha eliminación'
+  ];
+
+  const rowsElim = eliminados.map(r => [
+    r.id,
+    r.fecha,
+    r.hora,
+    r.semana,
+    r.direccion,
+    r.zona,
+    r.tipo,
+    r.cantidad,
+    r.unidad,
+    r.obs || '',
+    r.fecha_eliminacion || ''
+  ]);
+
+  const wsElim = XLSX.utils.aoa_to_sheet([colsElim, ...rowsElim]);
+
+  wsElim['!cols'] = [
+    {wch:12},{wch:12},{wch:10},{wch:16},{wch:30},
+    {wch:18},{wch:14},{wch:10},{wch:10},{wch:30},{wch:20}
+  ];
+
+  wsElim['!autofilter'] = { ref: 'A1:K1' };
+
+  XLSX.utils.book_append_sheet(wb, wsElim, 'Eliminados');
+}
   const etiqueta = modo === 'zona' ? zoneActiva : (semana || 'Completo');
   const fname = `catastro_${etiqueta.replace(/[\s\/]+/g,'_')}.xlsx`;
   XLSX.writeFile(wb, fname);

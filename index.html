@@ -2150,6 +2150,9 @@ function nombreArchivo(modo, semana, ext) {
 // ── Exportar CSV ──
 function exportarCSV(modo, semana) {
   const datos = getFiltrados(modo, semana);
+  
+  console.log('PRIMER REGISTRO EXPORTADO');
+  console.log(datos[0]);
   if (!datos.length) { alert('No hay registros para exportar con este filtro.'); return; }
   const cols = ['ID','Fecha','Hora','Semana','Dirección','Zona','Días retiro','Tipo','Cantidad','Unidad','Sobregenerador','Latitud','Longitud','Observaciones'];
   const rows = datos.map(r => [

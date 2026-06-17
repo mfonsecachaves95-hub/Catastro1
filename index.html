@@ -1742,7 +1742,7 @@ const r = {
   lat: currentLat,
   lon: currentLon,
 
-  foto: fotoBase64,
+  foto: null,
   foto_url: fotoUrl,
 
   sobre: esSobregenerador(
@@ -1829,7 +1829,7 @@ async function guardarRegistroSupabase(r) {
   lat: r.lat ? parseFloat(r.lat) : null,
   lon: r.lon ? parseFloat(r.lon) : null,
 
-  foto: r.foto || null,
+  foto: null,
   foto_url: r.foto_url || null,
   sobre: r.sobre,
     
@@ -1932,7 +1932,9 @@ function renderResultados() {
   : `<button class="delete-btn" onclick="eliminarRegistro(${r.id})">✕ Eliminar</button>`
 }
       </div>
-      ${r.foto ? `<img src="${r.foto}" class="reg-img" alt="Evidencia" />` : ''}
+     ${(r.foto_url || r.foto)
+  ${r.foto_url ? `<img src="${r.foto_url}" class="reg-img" alt="Evidencia" />` : ''}
+  : ''}
     </div>
   `).join('');
 }

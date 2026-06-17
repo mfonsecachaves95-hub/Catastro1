@@ -1838,7 +1838,8 @@ async function guardarRegistroSupabase(r) {
   comercio_camion: r.comercio_camion || null,
   comercio_conductor: r.comercio_conductor || null
 };
- 
+  console.log('FILA QUE SE ENVÍA A SUPABASE');
+  console.log(JSON.stringify(fila, null, 2));
   const { error } = await _supabase.from('registros').insert(fila);
  if (error) {
   console.error('Error guardando en Supabase:', error);

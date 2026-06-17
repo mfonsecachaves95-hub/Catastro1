@@ -2207,7 +2207,6 @@ function exportarKML(modo, semana) {
   descargar(kml, nombreArchivo(modo, semana, 'kml'), 'application/vnd.google-earth.kml+xml');
   document.getElementById('exportMenu').classList.remove('open');
 }
-
 // ── Exportar XLSX ──
 async function exportarXLSX(modo, semana) {
   const datos = getFiltrados(modo, semana);

@@ -2259,13 +2259,49 @@ r.lon ? parseFloat(r.lon) : '',
   ]);
 
   const wsReg = XLSX.utils.aoa_to_sheet([colsReg, ...rowsReg]);
+ // Convertir Foto URL en hipervínculo (forma compatible Excel)
+const rangoReg = XLSX.utils.decode_range(wsReg['!ref']);
+
+for (let R = 1; R <= rangoReg.e.r; R++) {
+
+  const celdaFoto = XLSX.utils.encode_cell({ r: R, c: 19 });
+
+  if (wsReg[celdaFoto] && wsReg[celdaFoto].v) {
+
+    const url = wsReg[celdaFoto].v;
+
+    wsReg[celdaFoto] = {
+      t: 's',
+      v: '📷 Ver foto',
+      l: { Target: url }
+    };
+
+  }
+}
 
   // Ancho de columnas
   wsReg['!cols'] = [
-    {wch:14},{wch:12},{wch:8},{wch:16},{wch:36},{wch:10},{wch:18},
-    {wch:12},{wch:10},{wch:10},{wch:14},{wch:12},{wch:12},{wch:36},
-    {wch:36},{wch:14},{wch:10},{wch:14}
-  ];
+  {wch:12}, // ID
+  {wch:12}, // Fecha
+  {wch:10}, // Hora
+  {wch:16}, // Semana
+  {wch:30}, // Dirección
+  {wch:18}, // Zona
+  {wch:16}, // Días retiro
+  {wch:14}, // Tipo
+  {wch:10}, // Cantidad
+  {wch:10}, // Unidad
+  {wch:14}, // Sobregenerador
+  {wch:22}, // Geolocalización
+  {wch:12}, // Latitud
+  {wch:12}, // Longitud
+  {wch:28}, // Observaciones
+  {wch:28}, // Razón social
+  {wch:16}, // RUT
+  {wch:12}, // Camión
+  {wch:16}, // Conductor
+  {wch:14}  // Foto URL
+];
   // Filtro automático en cabecera
   wsReg['!autofilter'] = { ref: 'A1:T1' };
 

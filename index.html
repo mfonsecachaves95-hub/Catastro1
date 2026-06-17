@@ -2210,19 +2210,46 @@ function exportarXLSX(modo, semana) {
   const wb = XLSX.utils.book_new();
 
   // ── Hoja 1: Registros ──
-  const colsReg = ['ID','Fecha','Hora','Semana','Dirección','Zona','Días retiro','Tipo','Cantidad','Unidad','Sobregenerador','Latitud','Longitud','Observaciones','Razón social','RUT','Camión','Conductor'];
+  const colsReg = ['ID','Fecha','Hora','Semana','Dirección','Zona','Días retiro','Tipo','Cantidad'const colsReg = [
+  'ID',
+  'Fecha',
+  'Hora',
+  'Semana',
+  'Dirección',
+  'Zona',
+  'Días retiro',
+  'Tipo',
+  'Cantidad',
+  'Unidad',
+  'Sobregenerador',
+  'Geolocalización',
+  'Latitud',
+  'Longitud',
+  'Observaciones',
+  'Razón social',
+  'RUT',
+  'Camión',
+  'Conductor',
+  'Foto URL'
+];
   const rowsReg = datos.map(r => [
     r.id, r.fecha, r.hora, r.semana,
     r.direccion, r.zona, r.diasRetiro||'',
     r.tipo, r.cantidad, r.unidad,
     r.sobre ? 'Sí' : 'No',
-    r.lat ? parseFloat(r.lat) : '',
-    r.lon ? parseFloat(r.lon) : '',
+
+(r.lat && r.lon)
+  ? `${Number(r.lat).toFixed(4)}, ${Number(r.lon).toFixed(4)}`
+  : '',
+
+r.lat ? parseFloat(r.lat) : '',
+r.lon ? parseFloat(r.lon) : '',
     r.obs||'',
     r.comercio ? r.comercio.nombre : '',
     r.comercio ? r.comercio.rut : '',
     r.comercio ? r.comercio.camion : '',
     r.comercio ? r.comercio.conductor : ''
+    r.foto_url || ''
   ]);
 
   const wsReg = XLSX.utils.aoa_to_sheet([colsReg, ...rowsReg]);
@@ -2234,7 +2261,7 @@ function exportarXLSX(modo, semana) {
     {wch:36},{wch:14},{wch:10},{wch:14}
   ];
   // Filtro automático en cabecera
-  wsReg['!autofilter'] = { ref: 'A1:R1' };
+  wsReg['!autofilter'] = { ref: 'A1:T1' };
 
   XLSX.utils.book_append_sheet(wb, wsReg, 'Registros');
 

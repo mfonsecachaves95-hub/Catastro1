@@ -2208,6 +2208,8 @@ function exportarKML(modo, semana) {
 function exportarXLSX(modo, semana) {
   alert('ENTRÉ A EXPORTAR XLSX');
   const datos = getFiltrados(modo, semana);
+  console.log('PRIMER REGISTRO');
+  console.log(datos[0]);
   if (!datos.length) { alert('No hay registros para exportar con este filtro.'); return; }
 
   const wb = XLSX.utils.book_new();
